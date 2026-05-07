@@ -11,3 +11,4 @@
 # Unignore specific directories
 !/EvaluateFoundationVLMs/
 !/EvaluateRealTimeModels/
+!/300_test_images
