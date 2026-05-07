@@ -1,0 +1,13 @@
+# Ignore everything at the root level
+/*
+
+# Unignore specific files
+!evaluate_F1
+!evaluate_F1.py
+!compare_f1_curves
+!compare_f1_curves.py
+!.gitignore
+
+# Unignore specific directories
+!/EvaluateFoundationVLMs/
+!/EvaluateRealTimeModels/
