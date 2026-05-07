@@ -17,9 +17,7 @@ import numpy as np
 
 from ultralytics import YOLOE
 
-# ---------------------------------------------------------------------------
 # Supported image extensions
-# ---------------------------------------------------------------------------
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
 
@@ -174,15 +172,11 @@ def build_coco_json(
 def main() -> None:
     args = parse_args()
 
-    # ------------------------------------------------------------------
     # Prepare output directories
-    # ------------------------------------------------------------------
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # ------------------------------------------------------------------
     # Collect images & init model
-    # ------------------------------------------------------------------
     image_paths = collect_images(args.images)
     print(f"Found {len(image_paths)} image(s) in '{args.images}'.")
 
@@ -190,9 +184,7 @@ def main() -> None:
     print(f"YOLOE model initialised  (model={args.model}, conf={args.conf}, device={args.device or 'auto'}).")
     print(f"Text prompt: '{args.prompt}'\n")
 
-    # ------------------------------------------------------------------
     # Load GT image-ID mapping (if provided)
-    # ------------------------------------------------------------------
     gt_name_to_id: dict[str, int] | None = None
     if args.gt:
         with open(args.gt, "r") as f:
@@ -200,9 +192,7 @@ def main() -> None:
         gt_name_to_id = {img["file_name"]: img["id"] for img in gt_data["images"]}
         print(f"Loaded GT mapping with {len(gt_name_to_id)} image(s) from '{args.gt}'.\n")
 
-    # ------------------------------------------------------------------
     # Process each image
-    # ------------------------------------------------------------------
     images_meta: list[dict] = []
     all_annotations: list[dict] = []
     annotation_id = 1
@@ -263,17 +253,13 @@ def main() -> None:
             cv2.imwrite(str(output_dir / img_path.name), annotated)
 
 
-    # ------------------------------------------------------------------
     # Write COCO JSON (full dataset format)
-    # ------------------------------------------------------------------
     coco = build_coco_json(images_meta, all_annotations, args.prompt)
     coco_path = output_dir / "_annotations.coco.json"
     with open(coco_path, "w", encoding="utf-8") as f:
         json.dump(coco, f, indent=2, ensure_ascii=False)
 
-    # ------------------------------------------------------------------
     # Write predictions JSON (flat COCOeval results format)
-    # ------------------------------------------------------------------
     predictions = [
         {
             "image_id": ann["image_id"],
@@ -287,9 +273,7 @@ def main() -> None:
     with open(pred_path, "w", encoding="utf-8") as f:
         json.dump(predictions, f, indent=2, ensure_ascii=False)
 
-    # ------------------------------------------------------------------
     # Summary
-    # ------------------------------------------------------------------
     total_detections = annotation_id - 1
     print(f"\n{'='*50}")
     print(f"Done!  {len(images_meta)} image(s) processed, {total_detections} detection(s) total.")

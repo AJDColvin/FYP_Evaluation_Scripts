@@ -31,7 +31,7 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # 1. Initialize the YOLO model
+    # Initialise YOLO model
     print(f"Loading YOLO model from {args.model}...")
     try:
         model = YOLO(args.model)
@@ -39,7 +39,7 @@ def main():
         print(f"Error loading model: {e}")
         sys.exit(1)
         
-    # 2. Map target class to YOLO class ID
+    # map target class to YOLO class ID
     target_class_id = None
     target_cls_lower = args.class_name.lower().strip()
     
@@ -55,7 +55,7 @@ def main():
         
     print(f"Mapped target class '{args.class_name}' to class ID {target_class_id}")
 
-    # 3. Collect images
+    #Collect images
     images_dir = Path(args.images)
     if not images_dir.is_dir():
         print(f"Error: Images directory '{args.images}' does not exist.")
@@ -68,7 +68,7 @@ def main():
         print("No images found to process. Exiting.")
         sys.exit(0)
 
-    # 3.5 Load GT image-ID mapping (if provided)
+    # Load GT image-ID mapping, if given
     gt_name_to_id = None
     if args.gt:
         with open(args.gt, "r") as f:
@@ -76,7 +76,7 @@ def main():
         gt_name_to_id = {img["file_name"]: img["id"] for img in gt_data["images"]}
         print(f"Loaded GT mapping with {len(gt_name_to_id)} image(s) from '{args.gt}'.\n")
 
-    # 4. Run inference and generate COCO predictions
+    # Run inference and generate COCO predictions
     predictions = []
     
     for idx, img_path in enumerate(image_paths):
@@ -88,14 +88,14 @@ def main():
             image_id = idx + 1
         
         # Determine if we should save the annotated image (1 out of every 10)
-        # Note: (idx % 10 == 0) means every 10th image (0th, 10th, 20th...)
+        # For visual validaiton
         save_annotated_image = (idx % 10 == 0)
         
-        # Run inference
+        # Run YOLO inference on image
         results = model.predict(source=str(img_path), conf=args.conf, verbose=False)
         result = results[0]
         
-        # Load image for drawing bounding boxes if needed
+        # load image for drawing bounding boxes if needed
         img_bgr = None
         if save_annotated_image:
             img_bgr = cv2.imread(str(img_path))
@@ -118,8 +118,6 @@ def main():
             w = x2 - x1
             h = y2 - y1
             
-            # Typically for PyCOCOTools evaluation, category_id = 1 for the first target class
-            # or you can use the YOLO class_id depending on your GT mapping. We'll set it to 1.
             predictions.append({
                 "image_id": image_id,
                 "category_id": 1,
@@ -134,7 +132,7 @@ def main():
                 cv2.putText(img_bgr, label_text, (int(x1), max(10, int(y1) - 10)), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
-        # Save annotated image
+        # Save
         if save_annotated_image and img_bgr is not None:
             save_path = output_dir / f"annotated_{img_path.name}"
             cv2.imwrite(str(save_path), img_bgr)
@@ -143,7 +141,7 @@ def main():
               f"Detections: {len(result.boxes)} | "
               f"Annotated Image Saved: {'Yes' if save_annotated_image else 'No'}")
 
-    # 5. Save the JSON predictions
+    # SAve the COCO JSON predictions
     pred_json_path = output_dir / "predictions.json"
     with open(pred_json_path, 'w') as f:
         json.dump(predictions, f, indent=4)

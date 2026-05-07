@@ -36,7 +36,7 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # 1. Initialize the RF-DETR model
+    # Initialise the RF-DETR model, load OTS as fallback
     print(f"Loading RFDETRMedium model...")
     try:
         model_path = args.model
@@ -50,11 +50,11 @@ def main():
         print(f"Error loading model: {e}")
         sys.exit(1)
         
-    # 2. Map target class to RF-DETR class ID
+    # map target class to RFDETR class ID
     target_class_id = None
     target_cls_lower = args.class_name.lower().strip()
     
-    # Check what format model.class_names is in (dict vs list)
+    # Check what format model.class_names is in
     model_names = model.class_names
     
     if isinstance(model_names, dict):
@@ -79,7 +79,7 @@ def main():
         
     print(f"Mapped target class '{args.class_name}' to class ID {target_class_id}")
 
-    # 3. Collect images
+    #collect images
     images_dir = Path(args.images)
     if not images_dir.is_dir():
         print(f"Error: Images directory '{args.images}' does not exist.")
@@ -92,7 +92,7 @@ def main():
         print("No images found to process. Exiting.")
         sys.exit(0)
 
-    # 3.5 Load GT image-ID mapping (if provided)
+    # load GT image ID mapping, if given
     gt_name_to_id = None
     if args.gt:
         with open(args.gt, "r") as f:
@@ -100,7 +100,7 @@ def main():
         gt_name_to_id = {img["file_name"]: img["id"] for img in gt_data["images"]}
         print(f"Loaded GT mapping with {len(gt_name_to_id)} image(s) from '{args.gt}'.\n")
 
-    # 4. Run inference and generate COCO predictions
+    # Run inference and generate COCO predictions
     predictions = []
     
     for idx, img_path in enumerate(image_paths):
@@ -112,7 +112,7 @@ def main():
             image_id = idx + 1
         save_annotated_image = (idx % 10 == 0)
         
-        # Run inference using threshold argument
+        # Run inference using threshold 
         detections = model.predict(str(img_path), threshold=args.conf)
         
         img_bgr = None
@@ -122,7 +122,6 @@ def main():
                 save_annotated_image = False
         
         # Iterate over bounding boxes, confidences and classes
-        # format from `rfdetr` uses `supervision` package outputs natively
         count_detections = len(detections)
         valid_detections_drawn = 0
         
@@ -163,7 +162,7 @@ def main():
               f"Raw Detections Check: {count_detections} -> Target Class: {valid_detections_drawn} | "
               f"Annotated Image Saved: {'Yes' if save_annotated_image else 'No'}")
 
-    # 5. Save the JSON predictions
+    #  Save the JSON predictions
     pred_json_path = output_dir / "predictions.json"
     with open(pred_json_path, 'w') as f:
         json.dump(predictions, f, indent=4)
