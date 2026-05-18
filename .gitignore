@@ -7,6 +7,7 @@
 !compare_f1_curves
 !compare_f1_curves.py
 !.gitignore
+!README.md
 
 # Unignore specific directories
 !/EvaluateFoundationVLMs/
